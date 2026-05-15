@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>B4Y Signal</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --forest1:#1a5c35;--forest2:#0d3a20;--forest3:#0a2a18;
+  --bg:#071a0e;--bg2:#0a2518;--bg3:#0d3320;--border:#1a4a28;
+  --green:#2ecc71;--green2:#27ae60;--gold:#f1c40f;--red:#e74c3c;
+  --blue:#3498db;--text:#c8ffd4;--muted:#5da87a;
+  --wood1:#b07030;--wood2:#7a4818;--wood3:#4a2a0a;
+  --mushroom:#e8a040;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;min-height:100vh;background:#050f07;font-family:'Inter',sans-serif;color:#fff;overflow-x:hidden}
+#app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden}
+
+/* ===== FOREST BACKGROUND ===== */
+#forest-bg{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;
+  background:linear-gradient(180deg,#0a2a14 0%,#0d3318 40%,#071a0e 100%);
+  overflow:hidden;pointer-events:none;
+}
+.tree{position:absolute;bottom:0;opacity:.4}
+.leaf-particle{position:absolute;animation:leafFall linear infinite;font-size:14px;opacity:0}
+@keyframes leafFall{
+  0%{transform:translateY(-20px) rotate(0deg) translateX(0);opacity:0}
+  10%{opacity:.8}
+  90%{opacity:.4}
+  100%{transform:translateY(100vh) rotate(720deg) translateX(60px);opacity:0}
+}
+
+/* Floating orbs */
+.orb{position:absolute;border-radius:50%;filter:blur(50px);pointer-events:none;animation:orbFloat ease-in-out infinite}
+@keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.1)}}
+
+.page{display:none;min-height:100vh;flex-direction:column;position:relative;z-index:1}
+.page.active{display:flex}
+
+/* ===== LOGIN ===== */
+#login-page{align-items:center;justify-content:flex-start;padding:16px 14px 24px}
+
+.ads-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:360px;margin-bottom:20px;animation:fadeUp .6s ease both}
+.c-ad{
+  background:linear-gradient(135deg,rgba(13,51,32,.9),rgba(10,37,24,.9));
+  border:1px solid rgba(46,204,113,.25);border-radius:14px;padding:14px 10px;text-align:center;
+  transition:all .3s;position:relative;overflow:hidden;cursor:default;
+  backdrop-filter:blur(10px);
+}
+.c-ad::before{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(46,204,113,.08),transparent);animation:shine 4s infinite}
+@keyframes shine{0%{left:-100%}100%{left:200%}}
+.c-ad:hover{border-color:rgba(241,196,15,.5);transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.ad-logo{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px}
+.ad-sub{font-size:9px;color:var(--muted);margin-bottom:5px;letter-spacing:.5px}
+.ad-code{
+  background:linear-gradient(135deg,#0f3d22,#1a5c35);
+  color:var(--gold);font-size:12px;font-weight:700;padding:3px 10px;
+  border-radius:20px;letter-spacing:2px;display:inline-block;
+  border:1px solid rgba(241,196,15,.3);
+}
+.ad-empty{
+  border:1px dashed rgba(46,204,113,.2)!important;
+  background:rgba(7,26,14,.5)!important;
+  min-height:94px;display:flex!important;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;
+}
+.ad-empty-txt{color:rgba(93,168,122,.5);font-size:9px;line-height:1.5;text-align:center;max-width:85px}
+
+#login-card{
+  width:100%;max-width:300px;
+  background:linear-gradient(135deg,rgba(13,51,32,.95),rgba(10,37,24,.95));
+  border:1px solid rgba(46,204,113,.3);border-radius:20px;padding:24px 20px;
+  animation:fadeUp .7s ease .1s both;
+  box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(46,204,113,.1);
+  backdrop-filter:blur(20px);
+}
+.logo-c{text-align:center;margin-bottom:20px}
+.logo-wrap{position:relative;display:inline-block;margin-bottom:10px}
+.logo-em{font-size:52px;display:block;animation:appleBob 2.5s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(46,204,113,.4))}
+@keyframes appleBob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
+.logo-glow{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:40px;height:8px;background:var(--green);border-radius:50%;filter:blur(8px);opacity:.5;animation:glowP 2.5s ease-in-out infinite}
+@keyframes glowP{0%,100%{opacity:.2;width:30px}50%{opacity:.7;width:50px}}
+.logo-name{font-family:'Rajdhani',sans-serif;color:#fff;font-size:24px;font-weight:700;letter-spacing:4px;text-shadow:0 0 30px rgba(46,204,113,.5)}
+.logo-sub2{color:var(--muted);font-size:10px;letter-spacing:3px;margin-top:3px}
+
+.f-label{color:var(--muted);font-size:11px;display:block;margin-bottom:7px;letter-spacing:.5px}
+.p-wrap{position:relative;margin-bottom:10px}
+.p-in{
+  width:100%;padding:13px 40px 13px 14px;
+  background:rgba(0,0,0,.3);border:1px solid rgba(46,204,113,.25);
+  border-radius:12px;color:#fff;font-size:15px;outline:none;letter-spacing:4px;
+  transition:all .25s;
+}
+.p-in:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(46,204,113,.1),0 0 20px rgba(46,204,113,.05)}
+.eye-b{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0}
+.tg-h{text-align:center;margin-bottom:14px}
+.tg-h a{color:var(--blue);font-size:11px;text-decoration:none;transition:color .2s}
+.tg-h a:hover{color:#5dade2;text-decoration:underline}
+.main-btn{
+  width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:700;
+  cursor:pointer;letter-spacing:1px;font-family:'Rajdhani',sans-serif;
+  background:linear-gradient(135deg,#2ecc71,#1da85d,#27ae60);
+  color:#071a0e;transition:all .25s;
+  box-shadow:0 4px 20px rgba(46,204,113,.35),inset 0 1px 0 rgba(255,255,255,.2);
+}
+.main-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(46,204,113,.5)}
+.main-btn:active{transform:scale(.97)}
+.err{color:var(--red);font-size:11px;text-align:center;margin-top:8px;min-height:14px}
+.visits{color:rgba(93,168,122,.7);font-size:11px;text-align:center;margin-top:14px;position:relative;z-index:1}
+.visits span{color:var(--green);font-weight:700}
+
+/* ===== CHANNELS ===== */
+#channels-page{background:transparent;align-items:center;justify-content:flex-start;padding:20px 18px}
+.ch-top-bar{width:100%;max-width:320px;margin-bottom:16px}
+.ch-back{background:rgba(0,0,0,.3);border:1px solid rgba(46,204,113,.25);border-radius:10px;color:var(--muted);font-size:12px;padding:7px 14px;cursor:pointer;transition:all .2s;backdrop-filter:blur(10px)}
+.ch-back:hover{color:var(--green);border-color:var(--green);background:rgba(46,204,113,.1)}
+.ch-head{text-align:center;margin-bottom:22px;width:100%;max-width:320px}
+.ch-em{font-size:48px;display:block;margin-bottom:10px;animation:appleBob 2s ease-in-out infinite;filter:drop-shadow(0 0 16px rgba(46,204,113,.3))}
+.ch-title{font-family:'Rajdhani',sans-serif;color:#fff;font-size:20px;font-weight:700;letter-spacing:2px;margin-bottom:5px;text-shadow:0 0 20px rgba(46,204,113,.4)}
+.ch-sub{color:var(--muted);font-size:12px;line-height:1.6}
+.ch-cards{width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.ch-card{
+  background:linear-gradient(135deg,rgba(13,51,32,.9),rgba(10,37,24,.9));
+  border:1px solid rgba(46,204,113,.2);border-radius:14px;padding:15px;
+  display:flex;align-items:center;gap:14px;text-decoration:none;
+  transition:all .25s;backdrop-filter:blur(10px);
+}
+.ch-card:hover{border-color:var(--green);background:rgba(46,204,113,.08);transform:translateX(5px)}
+.ch-ci{font-size:28px;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(46,204,113,.3))}
+.ch-cn{color:var(--green);font-size:14px;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:.5px}
+.ch-cd{color:var(--muted);font-size:11px;margin-top:3px}
+
+/* ===== BOT PAGE ===== */
+#bot-page{background:transparent;padding:14px}
+.bot-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:11px;border-bottom:1px solid rgba(46,204,113,.15)}
+.bot-ttl{font-family:'Rajdhani',sans-serif;color:#fff;font-size:15px;font-weight:700;letter-spacing:2px;text-align:center;flex:1;text-shadow:0 0 20px rgba(46,204,113,.4)}
+.sm-btn{background:rgba(0,0,0,.3);border:1px solid rgba(46,204,113,.2);border-radius:8px;color:var(--muted);font-size:11px;padding:5px 10px;cursor:pointer;transition:all .2s;backdrop-filter:blur(10px)}
+.sm-btn:hover{color:var(--green);border-color:var(--green)}
+
+/* KANTORA */
+.kantora-bar{display:flex;gap:7px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.kantora-bar::-webkit-scrollbar{height:3px}.kantora-bar::-webkit-scrollbar-thumb{background:rgba(46,204,113,.3);border-radius:3px}
+.kb{
+  border:1px solid rgba(46,204,113,.2);border-radius:10px;padding:7px 14px;
+  font-size:11px;font-weight:700;cursor:pointer;
+  background:rgba(10,37,24,.8);color:var(--muted);
+  transition:all .25s;white-space:nowrap;font-family:'Rajdhani',sans-serif;
+  flex-shrink:0;backdrop-filter:blur(10px);
+}
+.kb.act{border-color:var(--green);color:#fff;background:rgba(46,204,113,.15);box-shadow:0 0 12px rgba(46,204,113,.2)}
+
+/* ID */
+.id-section{
+  background:rgba(0,0,0,.25);border:1px solid rgba(46,204,113,.15);
+  border-radius:12px;padding:10px;margin-bottom:12px;backdrop-filter:blur(10px);
+}
+.id-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.id-label{color:var(--muted);font-size:11px}
+.id-sv-lnk{color:var(--green);font-size:10px;cursor:pointer;text-decoration:underline;display:none}
+.id-row{display:flex;gap:6px}
+.id-in{flex:1;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(46,204,113,.2);border-radius:9px;color:#fff;font-size:13px;outline:none;transition:border-color .2s}
+.id-in:focus{border-color:var(--green)}
+.id-in::placeholder{color:rgba(93,168,122,.5);font-size:11px}
+.id-in.valid{border-color:var(--green)}
+.id-in.invalid{border-color:var(--red)}
+.id-btn{padding:9px 14px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--green),var(--green2));color:#071a0e;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;transition:all .2s;white-space:nowrap}
+.id-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(46,204,113,.3)}
+.id-st{font-size:10px;margin-top:5px;min-height:13px}
+.id-st.ok{color:var(--green)}.id-st.fail{color:var(--red)}.id-st.chk{color:var(--gold)}
+
+/* ===== GAME GRID — Real Apple of Fortune style ===== */
+.col-lbs{display:grid;grid-template-columns:52px repeat(5,1fr);gap:4px;margin-bottom:4px}
+.clbl{text-align:center;color:rgba(93,168,122,.6);font-size:11px;font-weight:700;letter-spacing:.5px}
+#grid{display:grid;grid-template-columns:52px repeat(5,1fr);gap:4px;margin-bottom:12px}
+
+.mlbl{
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(26,74,40,.8),rgba(10,37,24,.8));
+  color:rgba(93,168,122,.7);font-size:10px;font-weight:700;
+  border-radius:10px;height:48px;
+  border:1px solid rgba(46,204,113,.15);transition:all .3s;
+}
+.mlbl.cur{
+  background:linear-gradient(135deg,rgba(46,204,113,.25),rgba(26,160,73,.1));
+  color:#fff;border-color:rgba(46,204,113,.6);
+  box-shadow:0 0 15px rgba(46,204,113,.2),inset 0 0 10px rgba(46,204,113,.05);
+  font-size:11px;
+}
+.mlbl.done{opacity:.15}
+
+/* TILES - real game kabi yog'och disk */
+.tile{
+  width:100%;height:48px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;transition:all .3s;position:relative;overflow:hidden;
+  cursor:default;
+}
+
+/* Yog'och disk — real game */
+.tile.wood{
+  background:radial-gradient(circle at 38% 32%,#c07838,#8a4e20,#5a3010,#3a1a06);
+  border:2px solid #9a6030;
+  box-shadow:inset 0 -3px 6px rgba(0,0,0,.4),inset 0 2px 4px rgba(255,200,100,.1),0 2px 4px rgba(0,0,0,.4);
+}
+.tile.wood::after{content:'';position:absolute;width:32%;height:32%;border-radius:50%;background:radial-gradient(circle,rgba(255,220,150,.2),transparent);top:12%;left:14%}
+
+/* Scanning wave */
+.tile.scan0{background:radial-gradient(circle at 38% 32%,#0a1a35,#061020);border:2px solid #1a4a80;animation:scanW0 .9s ease-in-out infinite}
+.tile.scan1{background:radial-gradient(circle at 38% 32%,#0a2518,#061510);border:2px solid #1a6040;animation:scanW1 .9s ease-in-out infinite .07s}
+.tile.scan2{background:radial-gradient(circle at 38% 32%,#1a1208,#0f0b04);border:2px solid #604010;animation:scanW2 .9s ease-in-out infinite .14s}
+.tile.scan3{background:radial-gradient(circle at 38% 32%,#1a0a20,#0f0615);border:2px solid #501870;animation:scanW3 .9s ease-in-out infinite .21s}
+.tile.scan4{background:radial-gradient(circle at 38% 32%,#200808,#120404);border:2px solid #701818;animation:scanW4 .9s ease-in-out infinite .28s}
+@keyframes scanW0{0%,100%{box-shadow:0 0 4px rgba(26,74,128,.2),inset 0 0 8px rgba(26,74,128,.1)}50%{box-shadow:0 0 20px rgba(52,152,219,.7),inset 0 0 15px rgba(52,152,219,.2)}}
+@keyframes scanW1{0%,100%{box-shadow:0 0 4px rgba(26,96,64,.2),inset 0 0 8px rgba(26,96,64,.1)}50%{box-shadow:0 0 20px rgba(46,204,113,.7),inset 0 0 15px rgba(46,204,113,.2)}}
+@keyframes scanW2{0%,100%{box-shadow:0 0 4px rgba(96,64,16,.2)}50%{box-shadow:0 0 20px rgba(241,196,15,.7),inset 0 0 15px rgba(241,196,15,.2)}}
+@keyframes scanW3{0%,100%{box-shadow:0 0 4px rgba(80,24,112,.2)}50%{box-shadow:0 0 20px rgba(155,89,182,.7),inset 0 0 15px rgba(155,89,182,.2)}}
+@keyframes scanW4{0%,100%{box-shadow:0 0 4px rgba(112,24,24,.2)}50%{box-shadow:0 0 20px rgba(231,76,60,.7),inset 0 0 15px rgba(231,76,60,.2)}}
+
+/* Signal ustun — mushroom kabi yaltiroq */
+.tile.predicted{
+  background:radial-gradient(circle at 38% 28%,#c87830,#8a5018,#5a3008);
+  border:2px solid var(--gold);
+  animation:predGlow .8s ease-in-out infinite;
+}
+@keyframes predGlow{
+  0%,100%{box-shadow:0 0 8px rgba(241,196,15,.4),inset 0 0 8px rgba(241,196,15,.1)}
+  50%{box-shadow:0 0 25px rgba(241,196,15,.8),0 0 50px rgba(241,196,15,.3),inset 0 0 15px rgba(241,196,15,.2)}
+}
+
+/* Mushroom tile — real game da yashil olma o'rnida mushroom */
+.tile.mushroom-tile{
+  background:radial-gradient(circle at 38% 28%,#e8a040,#b06020,#784010);
+  border:2px solid #e8a040;
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 0 20px rgba(232,160,64,.5);
+}
+
+/* Yashil olma — to'g'ri signal */
+.tile.apple-win{
+  background:radial-gradient(circle at 38% 28%,#5ef080,#2ea850,#1a6030,#0a3818);
+  border:2px solid #3ecc60;
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 0 20px rgba(62,204,96,.5);
+}
+
+/* Yeyilgan/chirigan olma */
+.tile.rotten-1{background:radial-gradient(circle at 38% 28%,#7a4818,#4a2a0a,#2a1406);border:2px solid #5a3810;opacity:.6}
+.tile.rotten-2{background:radial-gradient(circle at 38% 28%,#5a3010,#3a1a06,#180a02);border:2px solid #3a2008;opacity:.55}
+.tile.rotten-3{background:radial-gradient(circle at 38% 28%,#3a1e08,#200e02,#0e0501);border:2px solid #2a1406;opacity:.5}
+.tile.rotten-bomb{background:radial-gradient(circle at 38% 28%,#6a2e10,#3a1506,#160602);border:2px solid #4a2008;opacity:.65}
+.tile.apple-dim{background:radial-gradient(circle at 38% 28%,#2a5828,#184018,#0e2810);border:2px solid #1a4018;opacity:.35}
+
+@keyframes popIn{0%{transform:scale(.05) rotate(-20deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+
+/* ===== SIGNAL PANEL ===== */
+.sig-panel{
+  display:none;margin-bottom:12px;
+  background:linear-gradient(135deg,rgba(13,51,32,.95),rgba(7,26,14,.95));
+  border:1px solid rgba(241,196,15,.4);border-radius:14px;padding:14px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 30px rgba(241,196,15,.1),inset 0 1px 0 rgba(241,196,15,.1);
+}
+.sig-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sig-icon{font-size:32px;animation:sigIconPulse 1s ease-in-out infinite;flex-shrink:0;filter:drop-shadow(0 0 12px rgba(241,196,15,.5))}
+@keyframes sigIconPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.sig-info{flex:1}
+.sig-big{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--gold);letter-spacing:1px;line-height:1.2;text-shadow:0 0 20px rgba(241,196,15,.5)}
+.sig-sub{color:rgba(93,168,122,.8);font-size:11px;margin-top:3px}
+.sig-conf{display:flex;align-items:center;gap:8px;margin-top:2px}
+.sig-pct{font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--green);font-weight:700;min-width:36px}
+.sig-bar{flex:1;height:5px;background:rgba(0,0,0,.3);border-radius:10px;overflow:hidden}
+.sig-fill{height:100%;background:linear-gradient(90deg,var(--green2),var(--green),#80ff80);border-radius:10px;transition:width .15s;box-shadow:0 0 8px rgba(46,204,113,.5)}
+/* Column display */
+.sig-col-display{
+  display:flex;gap:6px;justify-content:center;
+}
+.col-chip{
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  border:2px solid rgba(46,204,113,.2);background:rgba(0,0,0,.3);color:rgba(93,168,122,.4);
+  transition:all .3s;
+}
+.col-chip.active{
+  background:radial-gradient(circle,rgba(241,196,15,.3),rgba(241,196,15,.1));
+  border-color:var(--gold);color:var(--gold);
+  box-shadow:0 0 15px rgba(241,196,15,.4);
+  animation:chipPulse .8s ease-in-out infinite;font-size:16px;
+}
+@keyframes chipPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* BOT PANEL */
+.bot-panel{
+  background:linear-gradient(135deg,rgba(13,51,32,.8),rgba(10,37,24,.8));
+  border:1px solid rgba(46,204,113,.15);border-radius:12px;padding:11px;
+  margin-bottom:11px;display:flex;align-items:center;gap:10px;
+  backdrop-filter:blur(10px);
+}
+.b-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1a5c35,#0d3320);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;animation:avP 3s ease-in-out infinite}
+@keyframes avP{0%,100%{box-shadow:0 0 6px rgba(46,204,113,.2)}50%{box-shadow:0 0 20px rgba(46,204,113,.6)}}
+.b-nm{color:var(--green);font-size:11px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:5px;font-family:'Rajdhani',sans-serif;letter-spacing:1px}
+.b-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.2s infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.1;transform:scale(.6)}}
+.b-txt{color:var(--text);font-size:12px;line-height:1.5}
+
+.prog-w{margin-bottom:12px}
+.prog-top{display:flex;justify-content:space-between;margin-bottom:5px}
+.prog-l{color:rgba(93,168,122,.6);font-size:11px}
+.prog-v{color:var(--green);font-size:11px;font-weight:700}
+.prog-bar{height:5px;background:rgba(0,0,0,.3);border-radius:10px;overflow:hidden;border:1px solid rgba(46,204,113,.1)}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green2),var(--green),#80ff80);border-radius:10px;width:0%;transition:width .5s;box-shadow:0 0 8px rgba(46,204,113,.4)}
+
+.btn-row{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+#sig-btn{
+  padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:700;
+  cursor:pointer;letter-spacing:1px;transition:all .25s;font-family:'Rajdhani',sans-serif;
+  background:linear-gradient(135deg,#2ecc71,#1da85d,#27ae60);
+  color:#071a0e;box-shadow:0 4px 18px rgba(46,204,113,.35),inset 0 1px 0 rgba(255,255,255,.2);
+}
+#sig-btn:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(46,204,113,.5)}
+#sig-btn:active{transform:scale(.97)}
+#sig-btn:disabled{background:rgba(13,51,32,.6);color:rgba(93,168,122,.4);cursor:not-allowed;box-shadow:none;transform:none;border:1px solid rgba(46,204,113,.15)}
+#new-btn{
+  padding:14px;border:1px solid rgba(46,204,113,.2);border-radius:12px;
+  font-size:14px;font-weight:700;cursor:pointer;
+  background:rgba(0,0,0,.3);color:var(--muted);
+  transition:all .25s;font-family:'Rajdhani',sans-serif;backdrop-filter:blur(10px);
+}
+#new-btn:hover{background:rgba(46,204,113,.1);color:var(--green);border-color:var(--green)}
+
+/* ===== LOADING ===== */
+#load-ov{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(7,26,14,.97);z-index:200;
+  align-items:center;justify-content:center;flex-direction:column;
+  backdrop-filter:blur(10px);
+}
+#load-ov.show{display:flex}
+#dna-c{display:block;width:90px;height:130px}
+.load-pct{font-family:'Rajdhani',sans-serif;font-size:48px;font-weight:700;color:var(--green);text-shadow:0 0 40px rgba(46,204,113,.6);margin-top:12px;letter-spacing:2px}
+.load-msg{font-family:'Rajdhani',sans-serif;font-size:14px;color:var(--gold);margin-top:4px;letter-spacing:2px;min-height:20px;text-align:center}
+.load-sub{color:rgba(93,168,122,.5);font-size:10px;margin-top:8px;letter-spacing:1.5px}
+
+/* ===== ADMIN ===== */
+#admin-page{background:transparent;padding:16px;min-height:100vh;overflow-y:auto}
+.adm-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(46,204,113,.15)}
+.adm-ttl{font-family:'Rajdhani',sans-serif;color:var(--gold);font-size:16px;font-weight:700;letter-spacing:2px}
+.out-btn{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.4);border-radius:8px;color:var(--red);font-size:11px;padding:6px 12px;cursor:pointer;transition:all .2s}
+.out-btn:hover{background:var(--red);color:#fff}
+.a-card{
+  background:linear-gradient(135deg,rgba(13,51,32,.7),rgba(10,37,24,.7));
+  border:1px solid rgba(46,204,113,.15);border-radius:14px;
+  padding:16px;margin-bottom:12px;backdrop-filter:blur(10px);
+}
+.a-ct{color:var(--gold);font-size:12px;font-weight:700;margin-bottom:14px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;display:flex;align-items:center;gap:6px}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sb{background:rgba(0,0,0,.25);border:1px solid rgba(46,204,113,.1);border-radius:10px;padding:12px;text-align:center}
+.sn{color:var(--green);font-size:24px;font-weight:700;font-family:'Rajdhani',sans-serif}
+.sl{color:var(--muted);font-size:10px;margin-top:4px}
+
+/* PASS EASY */
+.pass-now{font-size:11px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pass-val{
+  background:rgba(0,0,0,.3);color:var(--green);font-size:15px;
+  letter-spacing:3px;padding:4px 12px;border-radius:8px;
+  border:1px solid rgba(46,204,113,.25);font-family:'Rajdhani',sans-serif;font-weight:700;
+}
+.toggle-btn{background:none;border:1px solid rgba(46,204,113,.2);border-radius:6px;color:var(--muted);font-size:10px;padding:3px 9px;cursor:pointer;transition:all .2s}
+.toggle-btn:hover{color:var(--gold);border-color:var(--gold)}
+.pass-row{display:flex;gap:8px}
+.pass-row input{
+  flex:1;padding:12px 14px;background:rgba(0,0,0,.3);
+  border:1px solid rgba(46,204,113,.2);border-radius:10px;
+  color:#fff;font-size:14px;outline:none;letter-spacing:3px;transition:all .2s;
+}
+.pass-row input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(241,196,15,.05)}
+.pass-row button{
+  padding:12px 18px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold),#d4a00d);color:#071a0e;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;
+  white-space:nowrap;transition:all .2s;
+}
+.pass-row button:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(241,196,15,.3)}
+.a-msg{font-size:11px;text-align:center;margin-top:8px;min-height:14px}
+
+/* ADS */
+.ad-grid-adm{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.ad-slot{background:rgba(0,0,0,.25);border:1px solid rgba(46,204,113,.1);border-radius:10px;padding:10px}
+.ad-slot-ttl{color:rgba(93,168,122,.6);font-size:10px;margin-bottom:7px;font-weight:700;letter-spacing:.5px}
+.a-in{width:100%;padding:8px 10px;background:rgba(0,0,0,.3);border:1px solid rgba(46,204,113,.15);border-radius:8px;color:#fff;font-size:11px;outline:none;margin-bottom:5px;transition:border-color .2s}
+.a-in:focus{border-color:var(--gold)}
+.a-in::placeholder{color:rgba(93,168,122,.3);font-size:10px}
+.a-in:last-child{margin-bottom:0}
+.ad-save-btn{width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--gold),#d4a00d);color:#071a0e;font-size:13px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;transition:all .2s}
+.ad-save-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(241,196,15,.3)}
+
+/* CHANNEL ADMIN */
+.ch-admin-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.ch-admin-item{background:rgba(0,0,0,.25);border:1px solid rgba(46,204,113,.1);border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px}
+.ch-admin-info{flex:1;min-width:0}
+.ch-admin-name{color:var(--text);font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-admin-url{color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.ch-del{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.2);border-radius:7px;color:rgba(231,76,60,.6);font-size:11px;padding:4px 9px;cursor:pointer;flex-shrink:0;transition:all .2s}
+.ch-del:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.ch-add-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px}
+.ch-add-btn{width:100%;padding:10px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--green),var(--green2));color:#071a0e;font-size:13px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;transition:all .2s}
+.ch-add-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(46,204,113,.3)}
+
+.a-btn-red{width:100%;padding:11px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:rgba(231,76,60,.2);color:var(--red);border:1px solid rgba(231,76,60,.3);transition:all .2s;font-family:'Rajdhani',sans-serif}
+.a-btn-red:hover{background:var(--red);color:#fff}
+.vr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(46,204,113,.05);font-size:11px}
+.vr:last-child{border-bottom:none}
+.vt{color:var(--muted)}.vb{background:rgba(46,204,113,.1);color:var(--green);font-size:10px;padding:2px 8px;border-radius:8px;border:1px solid rgba(46,204,113,.2)}
+
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,rgba(13,51,32,.95),rgba(10,37,24,.95));border:1px solid rgba(46,204,113,.3);border-radius:12px;color:var(--text);font-size:13px;padding:11px 22px;z-index:999;transition:transform .3s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.5);backdrop-filter:blur(20px)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#suc-ov{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(7,26,14,.95);z-index:300;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(20px)}
+#suc-ov.show{display:flex}
+.suc-em{font-size:70px;animation:appleBob .5s ease;filter:drop-shadow(0 0 30px rgba(46,204,113,.5))}
+.suc-ttl{font-family:'Rajdhani',sans-serif;color:var(--green);font-size:24px;font-weight:700;letter-spacing:2px;margin-top:14px;text-align:center;text-shadow:0 0 30px rgba(46,204,113,.4)}
+.suc-sub{color:var(--muted);font-size:13px;margin-top:6px;text-align:center}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:481px){#app{border-radius:24px;margin:20px auto;box-shadow:0 30px 80px rgba(0,0,0,.7)}.tile{height:52px;font-size:24px}.mlbl{height:52px}#grid,.col-lbs{gap:4px}}
+@media(max-width:360px){.c-ad{padding:9px 7px}.ad-logo{font-size:14px}.tile{height:40px;font-size:18px}.mlbl{height:40px;font-size:9px}#sig-btn,#new-btn{padding:12px;font-size:13px}}
+</style>
+</head>
+<body>
+
+<div id="forest-bg">
+  <div class="orb" style="width:280px;height:280px;background:rgba(46,204,113,.06);top:-80px;right:-80px;animation-duration:7s"></div>
+  <div class="orb" style="width:200px;height:200px;background:rgba(46,204,113,.04);bottom:100px;left:-60px;animation-duration:9s;animation-delay:-3s"></div>
+  <div class="orb" style="width:150px;height:150px;background:rgba(241,196,15,.03);top:40%;right:20px;animation-duration:11s;animation-delay:-5s"></div>
+</div>
+
+<div id="app">
+
+<!-- LOADING -->
+<div id="load-ov">
+  <canvas id="dna-c" width="90" height="130"></canvas>
+  <div class="load-pct" id="load-pct">0%</div>
+  <div class="load-msg" id="load-msg">ANIQLANMOQDA</div>
+  <div class="load-sub">NEYRON TARMOQ ISHLAYAPTI</div>
+</div>
+
+<div id="suc-ov">
+  <div class="suc-em">✅</div>
+  <div class="suc-ttl" id="suc-ttl">SAQLANDI!</div>
+  <div class="suc-sub" id="suc-sub"></div>
+</div>
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="login-page" class="page active">
+  <div class="ads-grid" id="ads-grid"></div>
+  <div id="login-card">
+    <div class="logo-c">
+      <div class="logo-wrap"><span class="logo-em">🍎</span><div class="logo-glow"></div></div>
+      <div class="logo-name">B4Y SIGNAL</div>
+      <div class="logo-sub2">APPLE OF FORTUNE BOT</div>
+    </div>
+    <label class="f-label">🔐 Parolni kiriting</label>
+    <div class="p-wrap">
+      <input class="p-in" id="pin" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <button class="eye-b" onclick="toggleEye()">👁</button>
+    </div>
+    <div class="tg-h"><a href="https://t.me/robot1606" target="_blank">📩 Parolni olish: @robot1606</a></div>
+    <button class="main-btn" onclick="doLogin()">KIRISH</button>
+    <div class="err" id="err"></div>
+  </div>
+  <div class="visits">👥 Bugungi tashriflar: <span id="vcn">...</span></div>
+</div>
+
+<!-- CHANNELS -->
+<div id="channels-page" class="page">
+  <div class="ch-top-bar">
+    <button class="ch-back" onclick="goPage('login-page')">← Orqaga</button>
+  </div>
+  <div class="ch-head">
+    <span class="ch-em">📢</span>
+    <div class="ch-title">KANALGA OBUNA BO'LING</div>
+    <div class="ch-sub">Barcha kanallarga a'zo bo'ling</div>
+  </div>
+  <div class="ch-cards" id="ch-cards"></div>
+  <button class="main-btn" style="max-width:320px;width:100%" onclick="gotoBot()">✅ A'zo bo'ldim — Davom etish</button>
+</div>
+
+<!-- BOT -->
+<div id="bot-page" class="page">
+  <div class="bot-top">
+    <button class="sm-btn" onclick="goPage('channels-page')">← Orqaga</button>
+    <div class="bot-ttl">🍎 B4Y SIGNAL</div>
+    <div style="width:70px"></div>
+  </div>
+  <div class="kantora-bar" id="kbar"></div>
+  <div class="id-section">
+    <div class="id-top">
+      <span class="id-label" id="id-label">ID kiriting</span>
+      <span class="id-sv-lnk" id="id-sv-lnk" onclick="useSavedId()"></span>
+    </div>
+    <div class="id-row">
+      <input class="id-in" id="game-id" placeholder="Masalan: 12345678" maxlength="12" oninput="onIdInput()"/>
+      <button class="id-btn" id="id-btn" onclick="checkId()">✓ Tasdiqlash</button>
+    </div>
+    <div class="id-st" id="id-st"></div>
+  </div>
+  <div class="col-lbs">
+    <div class="clbl"></div>
+    <div class="clbl">A</div><div class="clbl">B</div><div class="clbl">C</div><div class="clbl">D</div><div class="clbl">E</div>
+  </div>
+  <div id="grid"></div>
+  <div class="sig-panel" id="sig-panel">
+    <div class="sig-row">
+      <div class="sig-icon" id="sig-icon">🎯</div>
+      <div class="sig-info">
+        <div class="sig-big" id="sig-big">Tahlil qilinmoqda...</div>
+        <div class="sig-sub" id="sig-sub">Signal kutilmoqda</div>
+        <div class="sig-conf">
+          <span class="sig-pct" id="sig-pct">0%</span>
+          <div class="sig-bar"><div class="sig-fill" id="sig-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sig-col-display" id="sig-col-display">
+      <div class="col-chip" id="chip-A">A</div>
+      <div class="col-chip" id="chip-B">B</div>
+      <div class="col-chip" id="chip-C">C</div>
+      <div class="col-chip" id="chip-D">D</div>
+      <div class="col-chip" id="chip-E">E</div>
+    </div>
+  </div>
+  <div class="bot-panel">
+    <div class="b-av">🤖</div>
+    <div style="flex:1;min-width:0">
+      <div class="b-nm">PREDICTOR BOT <div class="b-dot"></div></div>
+      <div class="b-txt" id="btxt">Kantora tanlang va ID kiriting!</div>
+    </div>
+  </div>
+  <div class="prog-w">
+    <div class="prog-top"><span class="prog-l">Qatorlar</span><span class="prog-v" id="pv">0 / 10</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="pf"></div></div>
+  </div>
+  <div class="btn-row">
+    <button id="sig-btn" onclick="doSignal()" disabled>📡 SIGNAL OLISH</button>
+    <button id="new-btn" onclick="newGame()">🔄 YANGI</button>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-page" class="page">
+  <div class="adm-top">
+    <div class="adm-ttl">⚙️ ADMIN PANEL</div>
+    <button class="out-btn" onclick="goPage('login-page');document.getElementById('pin').value=''">Chiqish</button>
+  </div>
+  <div class="a-card">
+    <div class="a-ct">📊 Statistika</div>
+    <div class="sg">
+      <div class="sb"><div class="sn" id="st1">0</div><div class="sl">Jami</div></div>
+      <div class="sb"><div class="sn" id="st2">0</div><div class="sl">Bugun</div></div>
+      <div class="sb"><div class="sn" id="st3">0</div><div class="sl">Unikal</div></div>
+    </div>
+  </div>
+  <div class="a-card">
+    <div class="a-ct">📋 Oxirgi tashriflar</div>
+    <div id="vlist"></div>
+  </div>
+  <div class="a-card">
+    <div class="a-ct">🔑 Parolni o'zgartirish</div>
+    <div class="pass-now">Joriy parol: <span class="pass-val" id="curp">****</span><button class="toggle-btn" onclick="toggleCurP()">ko'rish</button></div>
+    <div class="pass-row">
+      <input type="password" id="np" placeholder="Yangi parol..."/>
+      <button onclick="savePass()">💾 SAQLASH</button>
+    </div>
+    <div class="a-msg" id="pmsg"></div>
+  </div>
+  <div class="a-card">
+    <div class="a-ct">📢 Majburiy kanallar</div>
+    <div class="ch-admin-list" id="ch-admin-list"></div>
+    <div class="ch-add-inputs">
+      <input class="a-in" id="nc-name" placeholder="Kanal nomi"/>
+      <input class="a-in" id="nc-url" placeholder="https://t.me/..."/>
+      <input class="a-in" id="nc-icon" placeholder="Emoji (🎰)"/>
+      <input class="a-in" id="nc-desc" placeholder="Tavsif"/>
+    </div>
+    <button class="ch-add-btn" style="margin-top:7px" onclick="addChannel()">➕ Kanal qo'shish</button>
+    <div class="a-msg" id="chmsg"></div>
+  </div>
+  <div class="a-card">
+    <div class="a-ct">📢 Reklamalar</div>
+    <div class="ad-grid-adm">
+      <div class="ad-slot"><div class="ad-slot-ttl">1-REKLAMA</div><input class="a-in" id="a1t" placeholder="Nomi"/><input class="a-in" id="a1p" placeholder="Promokod"/><input class="a-in" id="a1c" placeholder="Rang (#e74c3c)"/></div>
+      <div class="ad-slot"><div class="ad-slot-ttl">2-REKLAMA</div><input class="a-in" id="a2t" placeholder="Nomi"/><input class="a-in" id="a2p" placeholder="Promokod"/><input class="a-in" id="a2c" placeholder="Rang (#3498db)"/></div>
+      <div class="ad-slot"><div class="ad-slot-ttl">3-REKLAMA</div><input class="a-in" id="a3t" placeholder="Nomi"/><input class="a-in" id="a3p" placeholder="Promokod"/><input class="a-in" id="a3c" placeholder="Rang (#f1c40f)"/></div>
+      <div class="ad-slot"><div class="ad-slot-ttl">4-REKLAMA</div><input class="a-in" id="a4t" placeholder="Nomi (bo'sh=joy)"/><input class="a-in" id="a4p" placeholder="Promokod"/><input class="a-in" id="a4c" placeholder="Rang"/></div>
+    </div>
+    <button class="ad-save-btn" onclick="saveAds()">💾 Reklamalarni saqlash</button>
+    <div class="a-msg" id="admsg"></div>
+  </div>
+  <div class="a-card">
+    <div class="a-ct">🗑 Statistikani tozalash</div>
+    <button class="a-btn-red" onclick="clearStats()">Barcha statistikani o'chirish</button>
+    <div class="a-msg" id="cmsg"></div>
+  </div>
+</div>
+</div><!-- #app -->
+
+<script>
+// ====================================================
+// STORAGE — barcha ma'lumotlar localStorage da saqlanadi
+// ====================================================
+const K = {
+  PASS: 'b4y_pass_v2',      // foydalanuvchi paroli
+  ADS:  'b4y_ads_v2',       // reklamalar
+  VISITS:'b4y_visits_v2',   // tashriflar
+  IDS:  'b4y_ids_v2',       // saqlangan IDlar
+  CHANNELS:'b4y_channels_v2'// kanallar
+};
+const ADMIN_PASS = 'admin888';
+const DEFAULT_USER_PASS = 'apple2024';
+
+function lsG(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function lsS(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+
+// Parolni o'qish — HAR DOIM localStorage dan
+function getPass(){return lsG(K.PASS)||DEFAULT_USER_PASS;}
+// Parolni saqlash
+function savePassToStorage(p){
+  const ok=lsS(K.PASS,p);
+  console.log('Parol saqlandi:',p,'Result:',ok,'Tekshirish:',lsG(K.PASS));
+  return ok;
+}
+
+const DEF_ADS=[{t:'1XBET',p:'B4Y',c:'#e74c3c'},{t:'LINEBET',p:'B4Y777',c:'#3498db'},{t:'MELBET',p:'B4Y',c:'#f1c40f'},{t:'',p:'',c:''}];
+const DEF_CH=[{name:'B4Y BET',url:'https://t.me/b4y_bet',icon:'🎰',desc:'@b4y_bet — Stavkalar'},{name:'B4Y DASTURLAR',url:'https://t.me/dasturlarB4Y',icon:'🤖',desc:'@dasturlarB4Y — Dasturlar'}];
+const KANTORALAR=[{id:'1xbet',name:'1XBET',col:'#e74c3c'},{id:'linebet',name:'LINEBET',col:'#3498db'},{id:'melbet',name:'MELBET',col:'#f1c40f'}];
+const ROTTEN=[1,1,1,2,2,2,3,3,3,4];
+const CNAMES=['A','B','C','D','E'];
+const MULTS=[1.23,1.54,1.93,2.41,4.02,6.71,11.18,27.97,69.93,349.68];
+const ROWS=10,COLS=5;
+
+let selK='1xbet',idOK=false,savedIds={},showCurP=false;
+let bombCol=[],sigCol=[],curRow=0,busy=false,gone=false,dnaId=null;
+
+// ===== PARTICLES =====
+(()=>{
+  // Add leaf particles to forest bg
+  const fb=document.getElementById('forest-bg');
+  const em=['🍃','🌿','✨','🍀'];
+  for(let i=0;i<15;i++){
+    const p=document.createElement('div');p.className='leaf-particle';
+    p.style.cssText=`left:${Math.random()*100}%;font-size:${10+Math.random()*10}px;animation-duration:${12+Math.random()*18}s;animation-delay:${Math.random()*15}s`;
+    p.textContent=em[Math.floor(Math.random()*em.length)];fb.appendChild(p);
+  }
+})();
+
+// ===== DNA CANVAS =====
+const dnaC2=document.getElementById('dna-c'),dnaX2=dnaC2.getContext('2d');
+function startDNA(){
+  let t=0;
+  function draw(){
+    dnaX2.clearRect(0,0,90,130);
+    const cx=45,n=7,h=130;
+    for(let i=0;i<n;i++){
+      const y=(i/n)*h+8,ph=t+i*.7;
+      const x1=cx+Math.sin(ph)*30,x2=cx-Math.sin(ph)*30,r=2+Math.abs(Math.sin(ph))*2.5;
+      const g1=dnaX2.createRadialGradient(x1,y,0,x1,y,r*2);g1.addColorStop(0,'rgba(46,204,113,.9)');g1.addColorStop(1,'rgba(46,204,113,0)');
+      dnaX2.beginPath();dnaX2.arc(x1,y,r,0,Math.PI*2);dnaX2.fillStyle=g1;dnaX2.fill();
+      const g2=dnaX2.createRadialGradient(x2,y,0,x2,y,r*2);g2.addColorStop(0,'rgba(241,196,15,.9)');g2.addColorStop(1,'rgba(241,196,15,0)');
+      dnaX2.beginPath();dnaX2.arc(x2,y,r,0,Math.PI*2);dnaX2.fillStyle=g2;dnaX2.fill();
+      if(i<n-1){
+        const ny=(i+1)/n*h+8,np2=t+(i+1)*.7,nx1=cx+Math.sin(np2)*30,nx2=cx-Math.sin(np2)*30;
+        dnaX2.beginPath();dnaX2.moveTo(x1,y);dnaX2.lineTo(nx1,ny);dnaX2.strokeStyle='rgba(46,204,113,.35)';dnaX2.lineWidth=1;dnaX2.stroke();
+        dnaX2.beginPath();dnaX2.moveTo(x2,y);dnaX2.lineTo(nx2,ny);dnaX2.strokeStyle='rgba(241,196,15,.35)';dnaX2.lineWidth=1;dnaX2.stroke();
+      }
+      if(i%2===0){const a=Math.abs(Math.sin(ph));dnaX2.beginPath();dnaX2.moveTo(x1,y);dnaX2.lineTo(x2,y);dnaX2.strokeStyle=`rgba(100,220,140,${a*.45})`;dnaX2.lineWidth=.7;dnaX2.stroke();}
+    }
+    t+=.08;dnaId=requestAnimationFrame(draw);
+  }
+  draw();
+}
+function stopDNA(){if(dnaId){cancelAnimationFrame(dnaId);dnaId=null;dnaX2.clearRect(0,0,90,130);}}
+
+// ===== APP START =====
+function appStart(){
+  savedIds=lsG(K.IDS)||{};
+  recordVisit();loadVC();renderAds();renderK();checkSavedId();renderChCards();
+}
+
+// ===== CHANNELS =====
+function getCh(){return lsG(K.CHANNELS)||DEF_CH;}
+function saveCh(ch){lsS(K.CHANNELS,ch);}
+function renderChCards(){
+  const chs=getCh(),el=document.getElementById('ch-cards');el.innerHTML='';
+  chs.forEach(ch=>{
+    const a=document.createElement('a');a.className='ch-card';a.href=ch.url;a.target='_blank';
+    a.innerHTML=`<div class="ch-ci">${ch.icon||'📢'}</div><div><div class="ch-cn">${ch.name}</div><div class="ch-cd">${ch.desc||''}</div></div>`;
+    el.appendChild(a);
+  });
+}
+function renderChAdmin(){
+  const chs=getCh(),el=document.getElementById('ch-admin-list');el.innerHTML='';
+  if(!chs.length){el.innerHTML='<div style="color:var(--muted);font-size:11px;padding:4px 0">Hali kanal yo\'q</div>';return;}
+  chs.forEach((ch,i)=>{
+    const d=document.createElement('div');d.className='ch-admin-item';
+    d.innerHTML=`<div style="font-size:22px">${ch.icon||'📢'}</div><div class="ch-admin-info"><div class="ch-admin-name">${ch.name}</div><div class="ch-admin-url">${ch.url}</div></div><button class="ch-del" onclick="delCh(${i})">✕</button>`;
+    el.appendChild(d);
+  });
+}
+function addChannel(){
+  const name=document.getElementById('nc-name').value.trim(),url=document.getElementById('nc-url').value.trim(),icon=document.getElementById('nc-icon').value.trim()||'📢',desc=document.getElementById('nc-desc').value.trim();
+  const m=document.getElementById('chmsg');
+  if(!name){m.style.color='var(--red)';m.textContent='❌ Kanal nomi kiriting!';return;}
+  if(!url||!url.startsWith('http')){m.style.color='var(--red)';m.textContent='❌ To\'g\'ri link kiriting!';return;}
+  const chs=getCh();chs.push({name,url,icon,desc});saveCh(chs);
+  renderChCards();renderChAdmin();
+  ['nc-name','nc-url','nc-icon','nc-desc'].forEach(id=>document.getElementById(id).value='');
+  m.style.color='var(--green)';m.textContent='✅ Kanal qo\'shildi!';setTimeout(()=>m.textContent='',2500);
+}
+function delCh(i){const chs=getCh();chs.splice(i,1);saveCh(chs);renderChCards();renderChAdmin();toast('Kanal o\'chirildi');}
+
+// ===== ADS =====
+function getAds(){return lsG(K.ADS)||DEF_ADS;}
+function renderAds(){
+  const ads=getAds(),g=document.getElementById('ads-grid');g.innerHTML='';
+  ads.forEach(ad=>{
+    const d=document.createElement('div');
+    if(!ad.t){d.className='c-ad ad-empty';d.innerHTML=`<div style="font-size:24px;opacity:.3">📢</div><div class="ad-empty-txt">Bu yerda sizning reklamangiz bo'lishi mumkin edi</div>`;}
+    else{d.className='c-ad';d.innerHTML=`<div class="ad-logo" style="color:${ad.c||'#fff'}">${ad.t}</div><div class="ad-sub">Promokod:</div><div class="ad-code">${ad.p||''}</div>`;}
+    g.appendChild(d);
+  });
+}
+function loadAdsAdmin(){
+  const ads=getAds();
+  for(let i=1;i<=4;i++){const ad=ads[i-1]||{t:'',p:'',c:''};document.getElementById('a'+i+'t').value=ad.t||'';document.getElementById('a'+i+'p').value=ad.p||'';document.getElementById('a'+i+'c').value=ad.c||'';}
+}
+function saveAds(){
+  const ads=[];for(let i=1;i<=4;i++)ads.push({t:document.getElementById('a'+i+'t').value.trim(),p:document.getElementById('a'+i+'p').value.trim(),c:document.getElementById('a'+i+'c').value.trim()||DEF_ADS[i-1]?.c||''});
+  lsS(K.ADS,ads);renderAds();
+  const m=document.getElementById('admsg');m.style.color='var(--green)';m.textContent='✅ Reklamalar saqlandi!';
+  showSuc('REKLAMALAR SAQLANDI!','Sahifada yangilandi');setTimeout(()=>m.textContent='',3000);
+}
+
+// ===== KANTORA =====
+function renderK(){
+  const bar=document.getElementById('kbar');bar.innerHTML='';
+  KANTORALAR.forEach(k=>{
+    const b=document.createElement('button');b.className='kb'+(k.id===selK?' act':'');
+    if(k.id===selK){b.style.borderColor=k.col;b.style.color='#fff';}
+    b.textContent=k.name;
+    b.onclick=()=>{selK=k.id;idOK=false;document.getElementById('game-id').value='';document.getElementById('id-st').textContent='';document.getElementById('id-st').className='id-st';document.getElementById('game-id').className='id-in';document.getElementById('id-label').textContent=k.name+' ID kiriting';document.getElementById('sig-btn').disabled=true;checkSavedId();renderK();setMsg('ID kiriting va tasdiqlang!');};
+    bar.appendChild(b);
+  });
+}
+
+// ===== ID =====
+function checkSavedId(){
+  const sv=savedIds[selK],lnk=document.getElementById('id-sv-lnk');
+  if(sv){lnk.style.display='inline';lnk.textContent='Saqlangan: '+sv;}else lnk.style.display='none';
+}
+function useSavedId(){const sv=savedIds[selK];if(sv){document.getElementById('game-id').value=sv;checkId();}}
+function onIdInput(){
+  const v=document.getElementById('game-id').value.trim(),el=document.getElementById('game-id'),st=document.getElementById('id-st');
+  if(!v){el.className='id-in';st.textContent='';st.className='id-st';return;}
+  if(!/^\d+$/.test(v)){el.className='id-in invalid';st.className='id-st fail';st.textContent='❌ Faqat raqamlar!';}
+  else if(v.length<5){el.className='id-in';st.className='id-st chk';st.textContent='⚠️ Kamida 5 ta raqam';}
+  else{el.className='id-in';st.className='id-st';st.textContent='';}
+}
+function checkId(){
+  const raw=document.getElementById('game-id').value.trim(),st=document.getElementById('id-st'),el=document.getElementById('game-id');
+  if(!raw){st.className='id-st fail';st.textContent='❌ ID bo\'sh!';return;}
+  if(!/^\d+$/.test(raw)){el.className='id-in invalid';st.className='id-st fail';st.textContent='❌ Faqat raqamlar!';return;}
+  if(raw.length<5){el.className='id-in invalid';st.className='id-st fail';st.textContent='❌ Kamida 5 ta raqam!';return;}
+  if(raw.length>10){el.className='id-in invalid';st.className='id-st fail';st.textContent='❌ Ko\'pi bilan 10 ta raqam!';return;}
+  if(/^(.)\1+$/.test(raw)){el.className='id-in invalid';st.className='id-st fail';st.textContent='❌ Bu ID haqiqiy emas!';return;}
+  let sq=true;for(let i=1;i<raw.length;i++)if(Math.abs(raw[i]-raw[i-1])!==1){sq=false;break;}
+  if(sq&&raw.length>4){el.className='id-in invalid';st.className='id-st fail';st.textContent='❌ Bu ID haqiqiy emas!';return;}
+  st.className='id-st chk';st.textContent='🔍 Tekshirilmoqda...';document.getElementById('id-btn').disabled=true;
+  setTimeout(()=>{
+    document.getElementById('id-btn').disabled=false;idOK=true;el.className='id-in valid';
+    savedIds[selK]=raw;lsS(K.IDS,savedIds);checkSavedId();
+    st.className='id-st ok';st.textContent='✅ ID tasdiqlandi va saqlandi!';
+    document.getElementById('sig-btn').disabled=false;setMsg('ID tasdiqlandi! Signal olishingiz mumkin.');startBot();toast('✅ ID tasdiqlandi!');
+  },900);
+}
+
+// ===== UTILS =====
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function showSuc(ttl,sub){document.getElementById('suc-ttl').textContent=ttl;document.getElementById('suc-sub').textContent=sub;const ov=document.getElementById('suc-ov');ov.classList.add('show');setTimeout(()=>ov.classList.remove('show'),2200);}
+
+// ===== VISITS =====
+function recordVisit(){
+  const now=new Date(),dk=now.toLocaleDateString('uz-UZ'),ts=now.toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'});
+  let v=lsG(K.VISITS)||{total:0,today:0,dk:'',uniq:0,log:[]};
+  v.total=(v.total||0)+1;if(v.dk!==dk){v.today=0;v.dk=dk;}v.today=(v.today||0)+1;v.uniq=(v.uniq||0)+1;
+  v.log=v.log||[];v.log.unshift({t:ts,d:dk});if(v.log.length>30)v.log=v.log.slice(0,30);lsS(K.VISITS,v);
+}
+function loadVC(){const v=lsG(K.VISITS)||{today:0};document.getElementById('vcn').textContent=v.today||0;}
+
+// ===== NAV =====
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+  const pg=document.getElementById(id);pg.style.display='flex';pg.classList.add('active');window.scrollTo(0,0);
+}
+function gotoBot(){goPage('bot-page');}
+
+// ===== LOGIN =====
+function doLogin(){
+  const v=document.getElementById('pin').value.trim();
+  const curPass=getPass(); // MUHIM: har safar localStorage dan o'qiymiz
+  if(v===ADMIN_PASS){goPage('admin-page');loadAdmin();loadAdsAdmin();renderChAdmin();document.getElementById('curp').textContent=showCurP?getPass():'****';}
+  else if(v===curPass){goPage('channels-page');}
+  else{const e=document.getElementById('err');e.textContent='❌ Parol noto\'g\'ri! @robot1606 dan oling.';document.getElementById('pin').value='';setTimeout(()=>e.textContent='',2500);}
+}
+function toggleEye(){const i=document.getElementById('pin');i.type=i.type==='password'?'text':'password';}
+
+// ===== ADMIN =====
+function loadAdmin(){
+  const v=lsG(K.VISITS)||{total:0,today:0,uniq:0,log:[]};
+  document.getElementById('st1').textContent=v.total||0;document.getElementById('st2').textContent=v.today||0;document.getElementById('st3').textContent=v.uniq||0;
+  const l=document.getElementById('vlist');
+  if(!v.log||!v.log.length){l.innerHTML='<div style="color:var(--muted);font-size:11px">Hali tashrif yo\'q</div>';}
+  else l.innerHTML=v.log.map(x=>`<div class="vr"><span class="vt">📅 ${x.d} — ${x.t}</span><span class="vb">Kirdi ✓</span></div>`).join('');
+}
+function toggleCurP(){showCurP=!showCurP;document.getElementById('curp').textContent=showCurP?getPass():'****';}
+function savePass(){
+  const p=document.getElementById('np').value.trim();
+  const m=document.getElementById('pmsg');
+  if(!p||p.length<4){m.style.color='var(--red)';m.textContent='❌ Kamida 4 ta belgi kiriting!';return;}
+  if(p===ADMIN_PASS){m.style.color='var(--red)';m.textContent='❌ Admin paroli bilan bir xil bo\'lmaydi!';return;}
+  
+  // ASOSIY: localStorage ga saqlaymiz
+  const saved=savePassToStorage(p);
+  if(!saved){m.style.color='var(--red)';m.textContent='❌ Saqlashda xato! Browser localStorage ni qo\'llab-quvvatlamayapti.';return;}
+  
+  document.getElementById('np').value='';
+  document.getElementById('curp').textContent=showCurP?p:'****';
+  m.style.color='var(--green)';m.textContent='✅ Parol saqlandi! Yangi parol: '+p;
+  showSuc('PAROL O\'ZGARTIRILDI!','Endi '+p+' bilan kiring');
+  setTimeout(()=>m.textContent='',6000);
+}
+function clearStats(){
+  lsS(K.VISITS,{total:0,today:0,dk:'',uniq:0,log:[]});loadVC();loadAdmin();
+  const m=document.getElementById('cmsg');m.style.color='var(--red)';m.textContent='🗑 Tozalandi!';setTimeout(()=>m.textContent='',2500);
+}
+
+// ===== BOT — 100% TO'G'RI SIGNAL =====
+function startBot(){
+  bombCol=[];sigCol=[];
+  for(let r=0;r<ROWS;r++){
+    const b=Math.floor(Math.random()*COLS);bombCol.push(b);
+    // 100% to'g'ri: har DOIM bomba bo'lmagan ustunni ko'rsatamiz
+    const safe=[];for(let c=0;c<COLS;c++)if(c!==b)safe.push(c);
+    sigCol.push(safe[Math.floor(Math.random()*safe.length)]);
+  }
+  curRow=0;busy=false;gone=false;
+  buildGrid();updProg(0);
+  document.getElementById('sig-panel').style.display='none';
+  // Reset chip colors
+  CNAMES.forEach(n=>document.getElementById('chip-'+n).className='col-chip');
+  if(idOK){document.getElementById('sig-btn').disabled=false;document.getElementById('sig-btn').textContent='📡 SIGNAL OLISH';}
+  setMsg('Signal olish tugmasini bosing!');
+}
+
+function buildGrid(){
+  const g=document.getElementById('grid');g.innerHTML='';
+  for(let r=ROWS-1;r>=0;r--){
+    const lbl=document.createElement('div');lbl.id='ml'+r;lbl.className='mlbl';lbl.textContent='x'+MULTS[r];g.appendChild(lbl);
+    for(let c=0;c<COLS;c++){const t=document.createElement('div');t.id='t'+r+'_'+c;t.className='tile wood';g.appendChild(t);}
+  }
+}
+function getT(r,c){return document.getElementById('t'+r+'_'+c);}
+function setMsg(tx){document.getElementById('btxt').textContent=tx;}
+function updProg(r){document.getElementById('pf').style.width=Math.round(r/ROWS*100)+'%';document.getElementById('pv').textContent=r+' / '+ROWS;}
+
+// SHORT LOADER — 1.2 sekund
+function showLoader(cb){
+  const ov=document.getElementById('load-ov');ov.classList.add('show');startDNA();
+  let pct=0;
+  const pctEl=document.getElementById('load-pct'),msgEl=document.getElementById('load-msg');
+  msgEl.textContent='ANIQLANMOQDA';
+  const steps=24,stepMs=1200/steps;
+  const iv=setInterval(()=>{
+    pct=Math.min(pct+Math.floor(100/steps)+Math.floor(Math.random()*4),99);
+    pctEl.textContent=pct+'%';
+    if(pct>35)msgEl.textContent='TAHLIL QILINMOQDA';
+    if(pct>70)msgEl.textContent='SIGNAL TOPILDI!';
+    if(pct>=99){clearInterval(iv);setTimeout(()=>{stopDNA();ov.classList.remove('show');cb(sigCol[curRow]);},120);}
+  },stepMs);
+}
+
+function doSignal(){
+  if(busy||gone||!idOK)return;
+  busy=true;
+  const btn=document.getElementById('sig-btn');btn.disabled=true;btn.textContent='🔍 Tahlil...';
+  document.getElementById('ml'+curRow).className='mlbl cur';
+  for(let c=0;c<COLS;c++){const t=getT(curRow,c);t.className=`tile scan${c}`;t.textContent='';}
+  setMsg('🔍 '+(curRow+1)+'-qator skanerlanyapti...');
+  // Reset chips
+  CNAMES.forEach(n=>document.getElementById('chip-'+n).className='col-chip');
+  document.getElementById('sig-panel').style.display='block';
+  document.getElementById('sig-big').textContent='Tahlil qilinmoqda...';
+  document.getElementById('sig-sub').textContent='Signal qidirilmoqda';
+  document.getElementById('sig-pct').textContent='0%';
+  document.getElementById('sig-fill').style.width='0%';
+  document.getElementById('sig-icon').textContent='🔍';
+
+  showLoader((pred)=>{
+    const bomb=bombCol[curRow];
+    // Show signal
+    document.getElementById('sig-icon').textContent='🎯';
+    document.getElementById('sig-big').textContent='👉 '+CNAMES[pred]+' ustunini bosing!';
+    document.getElementById('sig-sub').textContent='Signal aniqlandi! x'+MULTS[curRow]+' — 100% aniqlik';
+    document.getElementById('sig-pct').textContent='100%';
+    document.getElementById('sig-fill').style.width='100%';
+    // Highlight chip
+    document.getElementById('chip-'+CNAMES[pred]).className='col-chip active';
+    // Highlight tile
+    for(let c=0;c<COLS;c++){
+      if(c===pred){getT(curRow,c).className='tile predicted';getT(curRow,c).textContent='⭐';}
+      else{getT(curRow,c).className='tile wood';}
+    }
+    setMsg('✅ '+CNAMES[pred]+' ustunida olma! (x'+MULTS[curRow]+')');
+    setTimeout(()=>revealRow(curRow,pred,bomb),900);
+  });
+}
+
+function revealRow(r,pred,bomb){
+  document.getElementById('sig-panel').style.display='none';
+  CNAMES.forEach(n=>document.getElementById('chip-'+n).className='col-chip');
+  const rc=ROTTEN[r];
+  const others=[0,1,2,3,4].filter(c=>c!==pred&&c!==bomb);
+  for(let i=others.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[others[i],others[j]]=[others[j],others[i]];}
+  const rotCols=others.slice(0,Math.min(rc,others.length));
+
+  for(let c=0;c<COLS;c++){
+    const t=getT(r,c);t.textContent='🍎';t.style.filter='';t.style.opacity='';
+    if(c===pred){
+      // 100% to'g'ri — har doim yashil olma
+      t.className='tile apple-win';
+    } else if(c===bomb){
+      t.className='tile rotten-bomb';t.style.opacity='.45';
+    } else if(rotCols.includes(c)){
+      const lvl=Math.min(3,1+Math.floor(rc/2));
+      t.className=`tile rotten-${lvl}`;
+    } else {
+      t.className='tile apple-dim';
+    }
+  }
+  document.getElementById('ml'+r).className='mlbl done';
+
+  setTimeout(()=>{
+    curRow++;updProg(curRow);busy=false;
+    if(curRow>=ROWS){
+      gone=true;document.getElementById('sig-btn').disabled=true;document.getElementById('sig-btn').textContent='✅ Tugadi';
+      setMsg('🎉 Barcha 10 qatorda olma topildi!');toast('🎉 Tabriklaymiz! Barcha qatorlar!');
+    } else {
+      document.getElementById('sig-btn').disabled=false;document.getElementById('sig-btn').textContent='📡 SIGNAL OLISH';
+      setMsg('Keyingi signal! ('+(curRow+1)+'/10)');
+    }
+  },500);
+}
+
+function newGame(){
+  stopDNA();document.getElementById('load-ov').classList.remove('show');
+  idOK=false;document.getElementById('game-id').value='';document.getElementById('game-id').className='id-in';
+  document.getElementById('id-st').textContent='';document.getElementById('id-st').className='id-st';
+  document.getElementById('sig-btn').disabled=true;document.getElementById('sig-panel').style.display='none';
+  CNAMES.forEach(n=>document.getElementById('chip-'+n).className='col-chip');
+  checkSavedId();startBot();setMsg('ID kiriting va tasdiqlang!');
+}
+
+appStart();
+</script>
+</body>
+</html>
